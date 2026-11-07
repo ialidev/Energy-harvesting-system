@@ -1,211 +1,276 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>نموذج عملي: حصاد حرارة الجسم لتشغيل حساس طبي</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<title>ورشة حصاد الطاقة – مجسم تفاعلي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f3f1ee;--card:#fff;--ink:#17212b;--mute:#5d6b77;--line:#d9d4cd;--heat:#d4561f;--charge:#0b7a85;--ok:#1f8a4c;--bad:#c0392b;--chip:#ebe7e1;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10171d;--card:#18222b;--ink:#e8edf1;--mute:#93a3b0;--line:#2b3a46;--heat:#ff8a57;--charge:#4cc3cf;--ok:#52c27f;--bad:#ff7a6b;--chip:#202d38}}
-:root[data-theme="dark"]{--bg:#10171d;--card:#18222b;--ink:#e8edf1;--mute:#93a3b0;--line:#2b3a46;--heat:#ff8a57;--charge:#4cc3cf;--ok:#52c27f;--bad:#ff7a6b;--chip:#202d38}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--paper:#e8e5da;--card:#f3f1e9;--ink:#1f1d19;--mute:#6d685c;--line:#c4bfae}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#191814;--card:#23221d;--ink:#ece8dc;--mute:#9a9484;--line:#3a382f;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#191814;--card:#23221d;--ink:#ece8dc;--mute:#9a9484;--line:#3a382f;color-scheme:dark}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Tajawal",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;line-height:1.7;font-size:16px}
-.wrap{max-width:960px;margin:0 auto;padding:20px 16px 48px}
-header{padding:28px 0 8px}
-h1{font-size:clamp(26px,5vw,40px);line-height:1.25;margin:0 0 10px;font-weight:800}
-h2{font-size:22px;margin:40px 0 12px;font-weight:800}
-p{margin:0 0 10px}
-.lead{color:var(--mute);max-width:62ch;font-size:17px}
-.meta{color:var(--mute);font-size:14px;margin-top:10px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
-.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:14px 0}
-.node{flex:1 1 130px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:120px}
-.node b{display:block;font-size:15px}
-.node span{color:var(--mute);font-size:13px;display:block;line-height:1.5}
-.arr{align-self:center;font-size:22px;color:var(--line);transition:color .3s}
-.arr.on{color:var(--heat);animation:pulse 1.2s infinite}
-@keyframes pulse{50%{opacity:.35}}
-@media (prefers-reduced-motion:reduce){.arr.on{animation:none}}
-.capfill{height:8px;border-radius:4px;background:var(--chip);margin-top:6px;overflow:hidden}
-.capfill i{display:block;height:100%;width:0;background:var(--charge);transition:width .2s}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.stat small{color:var(--mute);display:block;font-size:13px}
-.stat strong{font-size:21px;font-weight:700;direction:ltr;unicode-bidi:plaintext;display:inline-block}
-.ctrls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-label{display:block;font-size:14px;color:var(--mute);margin-bottom:4px}
-label b{color:var(--ink)}
-select,input[type=range]{width:100%}
-select{font:inherit;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-input[type=range]{accent-color:var(--heat)}
-.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-button{font:inherit;font-weight:700;padding:10px 18px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
-button.main{background:var(--charge);border-color:var(--charge);color:#fff}
-:root:not([data-theme="light"]) button.main{color:#06222a}
-button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--heat);outline-offset:2px}
-.status{margin:14px 0;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--chip);font-weight:500}
-.status.good{border-color:var(--ok)}.status.bad{border-color:var(--bad)}
-canvas{width:100%;height:240px;display:block;background:var(--card);border:1px solid var(--line);border-radius:12px}
-.oled{background:#000;color:#7fe3ff;font-family:ui-monospace,Menlo,monospace;direction:ltr;border-radius:8px;padding:10px 14px;display:inline-block;min-width:180px;font-size:18px;line-height:1.5}
-.oled small{display:block;color:#5a7a86;font-size:11px;line-height:1.3}
-.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
-.wrapx{overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:520px;font-size:15px}
-th,td{border:1px solid var(--line);padding:8px 10px;text-align:right;vertical-align:top}
-th{background:var(--chip)}
-.bad{color:var(--bad)}.ok{color:var(--ok)}
-code{direction:ltr;unicode-bidi:embed;background:var(--chip);padding:1px 6px;border-radius:5px}
-footer{color:var(--mute);font-size:14px;margin-top:40px;border-top:1px solid var(--line);padding-top:14px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Tajawal,system-ui,sans-serif;line-height:1.55}
+main{max-width:none;margin:0 auto;padding:14px 16px 40px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px}
+h1{font-size:19px;margin:0}
+header p{margin:0;font-size:13px;color:var(--mute)}
+.st{text-align:left;direction:ltr;white-space:nowrap}
+.st b{font-size:26px;line-height:1;display:block}
+.st small{font-size:12px;color:var(--mute);display:block}
+.chips,.btns,.ctl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+button{font:inherit;font-size:14px;padding:6px 13px;border-radius:999px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap}
+button.on{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:3px solid #2f6fe0;outline-offset:2px}
+.chips button{border-color:var(--line)}
+.chips button.on{border-color:var(--ink)}
+.stage{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:4px}
+svg{width:100%;height:auto;display:block}
+svg polygon,svg ellipse,svg .ol{stroke:var(--ink);stroke-width:1.5;stroke-linejoin:round}
+.ctl{align-items:center;margin:10px 0;font-size:14px}
+.ctl input[type=range]{width:110px;accent-color:var(--ink)}
+.sw{width:24px;height:24px;padding:0;border-radius:50%}
+.sw.on{outline:3px solid var(--ink);outline-offset:2px}
+.panel{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.panel h2{font-size:15px;margin:0 0 4px}
+.panel p{margin:0;font-size:14px}
+pre{direction:ltr;text-align:left;margin:0;font-size:12px;overflow-x:auto;background:var(--paper);border:1.5px solid var(--ink);border-radius:10px;padding:10px}
+.stage{position:relative}
+#tip{position:absolute;inset-inline:8px;bottom:8px;background:var(--card);border:1.5px solid var(--ink);border-radius:14px;padding:8px 12px;font-size:13px;z-index:2}
+#tip b{font-size:14px}#tip em{font-style:normal;color:var(--mute);display:block}
+#tip .lv{color:#1a8a5a;font-weight:700}
+svg text,svg line,svg rect[rx="10"]{pointer-events:none}
+.screen{background:#0a1a18;color:#8dffd2;border:2px solid var(--ink);border-radius:18px;padding:12px 14px;margin:10px 0 8px}
+.screen h2{font-size:14px;margin:0 0 8px;color:#6fd4b0;font-weight:500}
+.screen .g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.screen .g b{display:block;font-size:30px;line-height:1.1}
+.screen small,.screen i{display:block;font-size:12px;color:#6fd4b0;font-style:normal}
+.screen svg{margin-top:8px;height:50px}
+#vs{margin-top:6px;font-size:14px;text-align:center}
+#sm{text-align:center;padding:18px 0;font-size:15px;color:#6fd4b0}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+@media (max-width:899px){main{max-width:720px}}
+@media (min-width:900px){.cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px;align-items:start}.left{position:sticky;top:10px}#svg{max-height:calc(100vh - 230px)}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<main>
 <header>
-<h1>هل تكفي حرارة الجسم لتشغيل حساس طبي؟</h1>
-<p class="lead">نموذج تفاعلي يحاكي نظام حصاد الطاقة: وحدة TEG على الجلد، ثم محوّل رفع، ثم مكثف فائق، ثم متحكم وحساس نبض. غيّر الظروف وشاهد متى يشحن المكثف ومتى يعمل القياس.</p>
-<p class="meta">مشروع جامعي — [اسم الطالب] — [القسم] — [اسم الدكتور]</p>
+<div><h1>ورشة حصاد الطاقة</h1><p>ركّب، وصّل، دفّئ، ارفع الكود</p></div>
+<div class="st"><small>PARTS</small><b id="parts">5/5</b><small>STATUS</small><span id="stat" dir="rtl"></span></div>
 </header>
-
-<h2>مسار الطاقة (يعمل مباشرة مع المحاكاة)</h2>
-<div class="flow" id="flow">
-<div class="node"><b>حرارة الجسم</b><span>الجلد أدفأ من الهواء</span></div>
-<div class="arr" id="a1">◀</div>
-<div class="node"><b>مولّد TEG</b><span id="nTeg">—</span></div>
-<div class="arr" id="a2">◀</div>
-<div class="node"><b>محوّل الرفع</b><span id="nConv">—</span></div>
-<div class="arr" id="a3">◀</div>
-<div class="node"><b>مكثف فائق</b><span id="nCap">—</span><div class="capfill"><i id="fill"></i></div></div>
-<div class="arr" id="a4">◀</div>
-<div class="node"><b>متحكم + حساس</b><span id="nMcu">—</span></div>
+<div class="chips" id="chips"></div>
+<div class="btns" id="btns"></div>
+<div class="cols"><div class="left"><div class="stage"><div id="tip" hidden></div><svg id="svg" viewBox="0 0 520 380" role="img" aria-label="مجسم ثلاثي الأبعاد لنظام حصاد الطاقة"></svg></div>
+<p style="margin:6px 4px 0;font-size:13px;color:var(--mute)">اسحب المجسم بإصبعك للتدوير، وقرّص للتكبير. اضغط على أي قطعة تظهر معلوماتها.</p></div><div class="right">
+<div class="screen"><h2>شاشة الجهاز وهو على اليد</h2><div id="sm"></div><div id="sv" hidden>
+<div class="g"><div><small>نبض القلب ♥</small><b id="vh">--</b><i>نبضة/د</i></div><div><small>الأكسجين SpO₂</small><b id="vo">--</b><i>%</i></div><div><small>حرارة الجلد</small><b id="vt">--</b><i>°م</i></div></div>
+<svg viewBox="0 0 300 50" preserveAspectRatio="none"><polyline id="pp" fill="none" stroke="#8dffd2" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
+<div id="vs"></div><small style="text-align:center;margin-top:4px">الحرارة تقريبية، تُقرأ من حساس الحرارة داخل شريحة MAX30102</small></div></div>
+<div class="btns" id="modes"></div>
+<div class="panel"><h2>رسوم بيانية حية</h2><p style="color:var(--mute);font-size:12px;margin:0 0 6px">الخط المتصل = اللي صار · الخط المتقطع = اللي جاي يصير · المنطقة الخضراء = المدى الطبيعي</p><div id="c1"></div><p id="fc" style="margin:2px 0 10px;font-size:13px;font-weight:500"></p><div class="g3"><div id="c2"></div><div id="c3"></div><div id="c4"></div></div><p id="fv" style="margin:8px 0 0;font-size:13px"></p></div>
+<div class="ctl">
+<label>اهتزاز الرسم <input id="wob" type="range" min="0" max="8" step=".5" value="1.5"></label>
+<span id="sws" style="display:flex;gap:8px"></span>
+<button id="lab" class="on">التسميات</button>
 </div>
-
-<h2>المحاكاة</h2>
-<div class="card">
-<div class="ctrls">
-<div><label>فرق الحرارة عبر الوحدة ΔT: <b id="vdT"></b></label><input type="range" id="dT" min="0.5" max="10" step="0.1" value="1.5"></div>
-<div><label>محوّل الطاقة</label><select id="conv">
-<option value="mcp">MCP1640 (إقلاع 0.65 فولت)</option>
-<option value="bq">BQ25504 (إقلاع 0.33 فولت)</option>
-<option value="ltc" selected>LTC3108 (إقلاع 0.02 فولت)</option></select></div>
-<div><label>المتحكم</label><select id="mcu">
-<option value="nano">Arduino Nano (تشغيل مستمر)</option>
-<option value="atm" selected>ATmega328P (نوم + قياس متقطع)</option></select></div>
-<div><label>سعة المكثف</label><select id="cap">
-<option value="0.1">0.1 فاراد</option><option value="0.47">0.47 فاراد</option>
-<option value="1" selected>1 فاراد</option><option value="4.7">4.7 فاراد</option><option value="10">10 فاراد</option></select></div>
-<div><label>سرعة الزمن</label><select id="speed">
-<option value="60">60× (دقيقة كل ثانية)</option><option value="600">600×</option>
-<option value="3600" selected>3600× (ساعة كل ثانية)</option><option value="21600">21600×</option></select></div>
-</div>
-<div class="btns"><button class="main" id="go">ابدأ</button><button id="rs">إعادة من الصفر</button></div>
-</div>
-
-<div class="status" id="status" role="status" aria-live="polite"></div>
-
-<div class="grid">
-<div class="stat"><small>الجهد المفتوح للـ TEG</small><strong id="sVoc">—</strong></div>
-<div class="stat"><small>القدرة المحصودة المفيدة</small><strong id="sPh">—</strong></div>
-<div class="stat"><small>جهد المكثف</small><strong id="sV">—</strong></div>
-<div class="stat"><small>الزمن المحاكى</small><strong id="sT">—</strong></div>
-<div class="stat"><small>عدد القياسات</small><strong id="sN">0</strong></div>
-<div class="stat"><small>متوسط الفاصل بين قياسين</small><strong id="sI">—</strong></div>
-</div>
-
-<canvas id="cv" role="img" aria-label="منحنى جهد المكثف مع الزمن"></canvas>
-<p class="meta">الخط المتقطع: أدنى جهد لعمل المتحكم (1.8 فولت). النقاط أسفل المنحنى: لحظات القياس.</p>
-
-<div class="cols" style="margin-top:12px">
-<div class="card"><b>شاشة الجهاز (قيم تجريبية)</b><p class="meta">تظهر قراءة جديدة عند كل قياس تحاكيه المحاكاة. الأرقام عشوائية لأغراض العرض، وليست قياساً حقيقياً.</p>
-<div class="oled" id="oled">♥ -- BPM<br>SpO₂ --%<small>بانتظار أول قياس</small></div></div>
-<div class="card"><b>الحسابات الحية</b>
-<p class="meta" id="calc" style="direction:ltr;text-align:left"></p></div>
-</div>
-
-<h2>التصميم المبدئي مقابل المحسّن</h2>
-<div class="wrapx"><table>
-<tr><th>العنصر</th><th>التصميم المبدئي</th><th>التصميم المحسّن</th></tr>
-<tr><td>محوّل الطاقة</td><td class="bad">MCP1640 يحتاج نحو 0.65 فولت للإقلاع، والـ TEG على الجلد يعطي أقل من 0.2 فولت</td><td class="ok">LTC3108 أو BQ25504، مصممان لجهود دخل منخفضة جداً</td></tr>
-<tr><td>المتحكم</td><td class="bad">Arduino Nano: نحو 75–100 ميلي واط باستمرار</td><td class="ok">ATmega328P منفرداً في وضع النوم: بضعة ميكرو واط</td></tr>
-<tr><td>المكثف</td><td class="bad">2.7 فولت مع خرج 5 فولت قد يتلفه، و10 فاراد يسرّب تياراً كبيراً</td><td class="ok">جهد تخزين آمن وسعة أصغر (0.47–1 فاراد)</td></tr>
-<tr><td>نمط القياس</td><td class="bad">مراقبة مستمرة</td><td class="ok">قياس لعشر ثوانٍ ثم نوم</td></tr>
-</table></div>
-
-<h2>ماذا يثبت العرض؟</h2>
-<div class="card">
-<p>1. الفكرة ممكنة فيزيائياً: حرارة الجسم تشغّل قياساً دورياً بلا بطارية.</p>
-<p>2. لا تصلح للمراقبة المستمرة: الطاقة المحصودة بضع مئات من الميكرو واط في أحسن الأحوال.</p>
-<p>3. اختيار المكونات هو الحاسم: جرّب Nano مع MCP1640 في المحاكاة وشاهد أن النظام لا يعمل أبداً.</p>
-</div>
-
-<footer>المحاكاة تعليمية بافتراضات مبسطة: معامل سيبك 45 ملي فولت لكل درجة، مقاومة داخلية 2.5 أوم، مطابقة حمل 50%، كفاءة المحوّل 40–60%، تسرب المكثف 3 ميكرو أمبير لكل فاراد، وطاقة القياس الواحد 165 ملي جول (10 ثوانٍ بتيار 5 ملي أمبير عند 3.3 فولت). القيم الفعلية يجب قياسها بالتجربة. حساس MAX30102 ليس جهازاً طبياً معتمداً.</footer>
-</div>
-
+<div class="panel"><h2 id="it"></h2><p id="id"></p></div>
+<div class="panel"><h2>جرّب بنفسك · برنامج النوم والقياس</h2>
+<pre>#include &lt;Wire.h&gt;
+#include &lt;LowPower.h&gt;
+void loop() {
+  readMAX30102();   // pulse + SpO2
+  storeLocal();
+  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+}</pre></div>
+</div></div></main>
 <script>
-var $=function(i){return document.getElementById(i)};
-var CONV={mcp:{vs:.65,eff:.5,n:"MCP1640"},bq:{vs:.33,eff:.6,n:"BQ25504"},ltc:{vs:.02,eff:.4,n:"LTC3108"}};
-var VMIN=1.8,VMAX=2.5,EMEAS=0.165/0.85;
-var S;
-function reset(){S={E:0,t:0,n:0,lastM:-99,on:false,ev:[],hist:[],run:S?S.run:false};draw();ui()}
-function P(){var dT=+$('dT').value,C=+$('cap').value,cv=CONV[$('conv').value],voc=.045*dT,pmax=voc*voc/(4*2.5),ok=voc/2>=cv.vs;
-return{dT:dT,C:C,cv:cv,mcu:$('mcu').value,voc:voc,pmax:pmax,ok:ok,ph:ok?pmax*.5*cv.eff:0}}
-function fmtT(s){if(s<120)return Math.round(s)+" ث";if(s<7200)return (s/60).toFixed(0)+" د";if(s<172800)return (s/3600).toFixed(1)+" س";return (s/86400).toFixed(1)+" يوم"}
-function fmtW(w){if(w<=0)return"0";if(w<1e-3)return (w*1e6).toFixed(0)+" µW";if(w<1)return (w*1e3).toFixed(1)+" mW";return w.toFixed(2)+" W"}
-function step(dt,p){var V=Math.sqrt(2*S.E/p.C),load=0;
-if(p.mcu==="nano"){if(!S.on&&V>=2.2)S.on=true;if(S.on&&V<VMIN)S.on=false;load=S.on?0.09:0}
-else{S.on=V>=VMIN;load=S.on?33e-6:0}
-S.E+=(p.ph-load-3e-6*p.C*V)*dt;
-var em=.5*p.C*VMAX*VMAX;if(S.E>em)S.E=em;if(S.E<0)S.E=0;S.t+=dt;
-if(p.mcu==="atm"&&S.on&&S.t-S.lastM>=10&&S.E-.5*p.C*VMIN*VMIN>=EMEAS){S.E-=EMEAS;S.n++;S.lastM=S.t;S.ev.push(S.t);
-var hr=Math.round(66+Math.random()*12),sp=Math.round(96+Math.random()*3);
-$('oled').innerHTML="♥ "+hr+" BPM<br>SpO₂ "+sp+"%<small>قيمة تجريبية — قياس رقم "+S.n+"</small>"}}
-var last=0;
-function loop(ts){if(!S.run){last=0;return}
-var dr=last?Math.min((ts-last)/1000,.1):0;last=ts;var p=P(),sim=dr*(+$('speed').value),k=0;
-while(sim>0&&k<4000){var d=Math.min(sim,10);step(d,p);sim-=d;k++}
-S.hist.push([S.t,Math.sqrt(2*S.E/p.C)]);if(S.hist.length>1500){S.hist=S.hist.filter(function(_,i){return i%2===0})}
-draw();ui();requestAnimationFrame(loop)}
-function ui(){var p=P(),V=Math.sqrt(2*S.E/p.C);
-$('vdT').textContent=p.dT.toFixed(1)+" °C";
-$('sVoc').textContent=(p.voc*1000).toFixed(0)+" mV";
-$('sPh').textContent=fmtW(p.ph);
-$('sV').textContent=V.toFixed(2)+" V";
-$('sT').textContent=fmtT(S.t);
-$('sN').textContent=S.n;
-$('sI').textContent=S.n>1?fmtT((S.t)/S.n):"—";
-$('fill').style.width=Math.min(100,V/VMAX*100)+"%";
-$('nTeg').textContent="جهد "+(p.voc*1000).toFixed(0)+" mV";
-$('nConv').textContent=p.cv.n+(p.ok?": يعمل":": لا يقلع");
-$('nCap').textContent=V.toFixed(2)+" V من "+p.C+" F";
-$('nMcu').textContent=p.mcu==="nano"?"Nano 90 mW":(S.on?"يعمل / ينام":"مطفأ (شحن)");
-var h=p.ph>0&&S.run;["a1","a2","a3"].forEach(function(i){$(i).classList.toggle("on",h)});$('a4').classList.toggle("on",S.on&&S.run);
-$('calc').textContent="Voc = 0.045 × "+p.dT.toFixed(1)+" = "+(p.voc*1000).toFixed(0)+" mV | Pmax = Voc²/4R = "+fmtW(p.pmax)+" | Pin = 50% × Pmax | Pout = Pin × "+(p.cv.eff*100)+"% = "+fmtW(p.ph)+" | Ecap = ½CV² = "+(.5*p.C*V*V).toFixed(2)+" J";
-var st=$('status'),m,c="";
-if(!p.ok){m="المحوّل "+p.cv.n+" يحتاج "+p.cv.vs+" فولت عند دخله، لكن الـ TEG يعطي "+(p.voc/2*1000).toFixed(0)+" ميلي فولت فقط تحت الحمل. لا طاقة تصل للمكثف. جرّب محوّلاً مصمماً للجهود المنخفضة.";c="bad"}
-else if(p.mcu==="nano"){m="الـ Nano يسحب نحو 90 ميلي واط والمحصود "+fmtW(p.ph)+" فقط، فكل ما يشحنه المكثف يُستهلك ثم ينطفئ (إعادة إقلاع متكررة). لا يصلح للتشغيل المستمر.";c="bad"}
-else if(.5*p.C*(VMAX*VMAX-VMIN*VMIN)<EMEAS){m="سعة المكثف صغيرة: الطاقة المتاحة بين 1.8 و2.5 فولت أقل من طاقة قياس واحد. كبّر السعة.";c="bad"}
-else if(S.n>0){m="النظام يعمل: قياس كل "+fmtT(S.t/S.n)+" تقريباً بحرارة الجسم فقط.";c="good"}
-else{m=S.run?"المكثف يشحن... يحتاج الوصول إلى 1.8 فولت قبل أول قياس.":"اضغط ابدأ لتشغيل المحاكاة.";c=""}
-st.textContent=m;st.className="status "+c}
-function draw(){var cv=$('cv'),r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;
-if(!r.width)return;cv.width=r.width*d;cv.height=r.height*d;var g=cv.getContext('2d');g.scale(d,d);
-var w=r.width,h=r.height,css=getComputedStyle(document.documentElement),L=css.getPropertyValue('--line'),M=css.getPropertyValue('--mute'),CH=css.getPropertyValue('--charge'),HT=css.getPropertyValue('--heat');
-var pl=44,pr=10,pt=12,pb=26,X0=pl,X1=w-pr,Y0=h-pb,Y1=pt;
-g.clearRect(0,0,w,h);g.font="12px Tajawal,sans-serif";g.fillStyle=M;g.strokeStyle=L;g.lineWidth=1;
-var tmax=Math.max(S.t,3600),yy=function(v){return Y0-(v/2.6)*(Y0-Y1)},xx=function(t){return X0+(t/tmax)*(X1-X0)};
-for(var v=0;v<=2.5;v+=.5){g.beginPath();g.moveTo(X0,yy(v));g.lineTo(X1,yy(v));g.stroke();g.textAlign="right";g.fillText(v.toFixed(1)+"V",X0-6,yy(v)+4)}
-g.setLineDash([5,4]);g.strokeStyle=HT;g.beginPath();g.moveTo(X0,yy(VMIN));g.lineTo(X1,yy(VMIN));g.stroke();g.setLineDash([]);
-g.fillStyle=M;g.textAlign="center";g.fillText("0",X0,h-8);g.fillText(fmtT(tmax),X1-10,h-8);
-if(S.hist.length>1){g.strokeStyle=CH;g.lineWidth=2.2;g.beginPath();S.hist.forEach(function(q,i){var x=xx(q[0]),y=yy(q[1]);i?g.lineTo(x,y):g.moveTo(x,y)});g.stroke()}
-g.fillStyle=HT;S.ev.forEach(function(t){g.beginPath();g.arc(xx(t),Y0-5,2.5,0,6.3);g.fill()})}
-$('go').onclick=function(){S.run=!S.run;$('go').textContent=S.run?"إيقاف مؤقت":"ابدأ";if(S.run)requestAnimationFrame(loop);ui()};
-$('rs').onclick=function(){var r=S.run;S.run=false;reset();S.run=r;if(r)requestAnimationFrame(loop)};
-$('cap').onchange=$('rs').onclick;
-['dT','conv','mcu'].forEach(function(i){$(i).oninput=ui;$(i).onchange=ui});
-window.addEventListener('resize',draw);
-reset();
+const $=id=>document.getElementById(id);
+const U=34;
+let ROT=0,ELV=.5,ZM=1,AUTO=false;
+const P=(x,y,z)=>{const c=Math.cos(ROT),s=Math.sin(ROT),dx=x-4.5,dy=y-3,rx=dx*c-dy*s+4.5,ry=dx*s+dy*c+3;
+ return [260+(rx-ry-1.5)*U*.866,190+(rx+ry-7.5)*U*ELV-z*U*Math.sqrt(1.25-ELV*ELV)]};
+const pts=a=>a.map(p=>p.map(v=>v.toFixed(1)).join(',')).join(' ');
+const hx=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));
+const mix=(a,b,t)=>'#'+hx(a).map((v,i)=>Math.round(v+(hx(b)[i]-v)*t).toString(16).padStart(2,'0')).join('');
+const shade=(h,k)=>'rgb('+hx(h).map(v=>Math.max(0,Math.min(255,Math.round(v*k))))+')';
+const poly=(a,f)=>`<polygon points="${pts(a)}" fill="${f}"/>`;
+function box(x,y,z,w,d,h,c){
+ const cs=Math.cos(ROT),sn=Math.sin(ROT),X=x+w,Y=y+d,Z=z+h;let o='';
+ const F=(a,k)=>poly(a.map(q=>P(...q)),shade(c,k));
+ if(cs-sn>0)o+=F([[x,Y,Z],[X,Y,Z],[X,Y,z],[x,Y,z]],.85);
+ if(sn-cs>0)o+=F([[x,y,Z],[X,y,Z],[X,y,z],[x,y,z]],.85);
+ if(cs+sn>0)o+=F([[X,y,Z],[X,Y,Z],[X,Y,z],[X,y,z]],.66);
+ if(-cs-sn>0)o+=F([[x,y,Z],[x,Y,Z],[x,Y,z],[x,y,z]],.66);
+ return o+F([[x,y,Z],[X,y,Z],[X,Y,Z],[x,Y,Z]],1.1);
+}
+function cyl(cx,cy,z,r,h,c,L){
+ const [x,y]=P(cx,cy,z),rx=r*U*1.22,ry=r*U*1.414*ELV,H=h*U*Math.sqrt(1.25-ELV*ELV),yt=y-H,yl=y-H*L;
+ const arc=`A${rx},${ry} 0 0 0 ${x+rx},${y}`;
+ return `<path class="ol" d="M${x-rx},${yt}L${x-rx},${y}${arc}L${x+rx},${yt}Z" fill="${shade(c,.8)}"/>`
+ +(L>.02?`<path d="M${x-rx},${yl}L${x-rx},${y}${arc}L${x+rx},${yl}Z" fill="#7db4ff" opacity=".8"/>`:'')
+ +`<ellipse cx="${x}" cy="${yt}" rx="${rx}" ry="${ry}" fill="${shade(c,1.2)}"/>`
+ +`<text x="${x}" y="${y-H/2+3}" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" style="direction:ltr">2.7V 10F</text>`;
+}
+const NAMES=['المولّد الحراري','رافع الجهد','المكثف الفائق','لوحة الأردوينو','حساس النبض'];
+const INFO=[
+['شكل 1 · النظام كاملاً','حرارة الجلد تولّد كهرباء ضعيفة، فيرفعها المحوّل ويخزنها المكثف، وبعدها يستيقظ الأردوينو ويقرأ النبض والأكسجين. جرّب: دفّئ، ثم ارفع الكود، ثم اضغط «عرض مفكّك».'],
+['شكل 2 · المولّد الحراري (TEG)','شريحة تحوّل فرق الحرارة بين الجلد والجو إلى جهد صغير (تأثير سيبك). كل ما زاد الفرق زادت الطاقة. وصّل الأحمر بـ VIN والأسود بـ GND.'],
+['شكل 3 · رافع الجهد (MCP1640)','يرفع جهد الـ TEG الضعيف إلى جهد صالح للشحن. يحتاج جهد دخل يقارب 0.65 فولت حتى يبدأ. مخرجه VOUT يروح للمكثف والأردوينو.'],
+['شكل 4 · المكثف الفائق','خزان الطاقة (10 فاراد). يمتلئ ببطء ويفرّغ بسرعة وقت القياس. الطاقة المخزنة E = ½CV². شوف مستوى الشحن داخل الأسطوانة.'],
+['شكل 5 · لوحة الأردوينو نانو','ينام أغلب الوقت ويصحى ليقرأ الحساس. VCC من المكثف، وSDA على A4 وSCL على A5. ارفع الكود حتى يبدأ القياس.'],
+['شكل 6 · حساس النبض (MAX30102)','يقيس النبض وتشبّع الأكسجين بالضوء الأحمر وتحت الأحمر عبر I²C. ينوّر أحمر لما يشتغل.']];
+const CEN=[[1.6,1.8],[4.45,1.55],[7.3,1.6],[4.7,4.1],[7.8,4.3]];
+const EZ=[1.2,2.0,1.2,2.6,1.4];
+const ANC=[[1.6,1.8,.7,-75,-45],[4.45,1.55,.5,10,-70],[7.3,1.6,1.5,60,-55],[4.7,4.1,.3,-105,50],[7.8,4.3,.4,75,48],[3.4,4.0,.4,-95,-5]];
+const WIRES=[
+[[2.6,1.2],[3.6,1.2],'#e03a3a'],[[2.6,2.0],[3.6,2.0],'#333'],
+[[5.3,1.2],[6.7,1.2],'#e03a3a'],[[5.3,2.0],[6.7,2.0],'#333'],
+[[7.3,2.2],[7.3,3.0],[6.2,3.0],[6.2,3.9],'#e03a3a'],
+[[7.3,3.0],[7.8,3.0],[7.8,3.7],'#e03a3a'],
+[[6.2,4.1],[7.2,4.1],'#e8b400'],[[6.2,4.3],[7.2,4.3],'#2fb344'],[[6.2,4.5],[7.2,4.5],'#777']];
+const S={sel:-1,wires:true,sol:true,skin:false,labels:true,exp:false,up:false,pc:'#3b6fd8',wob:1.5};
+const T={ex:0,heat:0,L:0,pa:[1,1,1,1,1]};
+const placed=[1,1,1,1,1];
+const svg=$('svg');
+function wave(x,y,t,j){const s=(t*14+j*9)%27;return `<path d="M${x},${y-s}q5,-6 0,-12t0,-12" fill="none" stroke="#ff7a2f" stroke-width="2.5" stroke-linecap="round" opacity="${(T.heat*(.9-s/30)).toFixed(2)}"/>`}
+function render(t){
+ const k=T.ex,zo=i=>EZ[i]*k+(1-T.pa[i])*3,dim=i=>S.sel<0||S.sel===i?1:.2;
+ const PS=[],dp=i=>{const c=Math.cos(ROT),s=Math.sin(ROT),dx=CEN[i][0]-4.5,dy=CEN[i][1]-3;return dx*c-dy*s+dx*s+dy*c};
+ const g=(i,s)=>{PS.push([dp(i),`<g data-i="${i}" opacity="${(T.pa[i]*dim(i)).toFixed(2)}">${s}</g>`]);return ''};
+ const all=placed.every(v=>v),cond=all&&S.wires&&S.sol,hot=cond&&T.heat>.5;
+ const L=T.L,led=L>.6&&(S.up?Math.sin(t*6)>0:true),glow=S.up&&L>.6;
+ const pc=S.pc;let h='<defs><filter id="wf" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="'+S.wob+'"/></filter></defs><g transform="translate(260 190) scale('+ZM.toFixed(3)+') translate(-260 -190)"><g filter="url(#wf)">';
+ h+=box(0,0,-.35-.5*k,9,6,.35,'#d8d2c0');
+ for(let i=0;i<5;i++)if(k>.05)h+=`<line x1="${P(...CEN[i],zo(i))[0]}" y1="${P(...CEN[i],zo(i))[1]}" x2="${P(...CEN[i],0)[0]}" y2="${P(...CEN[i],0)[1]}" stroke="var(--ink)" stroke-dasharray="3 4" opacity="${k*.6}"/>`;
+ if(T.heat>.02)h+=`<g opacity="${T.heat}">${box(.2,.4,0,2.8,2.6,.06,'#f2c4a0')}</g>`;
+ const fl=[hot,hot,hot,hot,cond&&L>.25,cond&&L>.6,cond&&L>.6,cond&&L>.6,cond&&L>.6];
+ const wo=(1-k)*(S.wires?1:0)*(cond?1:.5);
+ if(wo>.02)WIRES.forEach((w,i)=>{
+  const c=w[w.length-1],p=w.slice(0,-1).map(q=>P(q[0],q[1],.07)),d='M'+p.map(q=>q.map(v=>v.toFixed(1)).join(',')).join('L');
+  h+=`<g opacity="${wo}" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="${d}" stroke="var(--ink)" stroke-width="5.5"/><path d="${d}" stroke="${c}" stroke-width="3.2"/>`
+  +(fl[i]?`<path d="${d}" stroke="#fff" stroke-width="1.8" stroke-dasharray="1 9" stroke-dashoffset="${(-t*30).toFixed(1)}"/>`:'')+'</g>';
+  if(S.sol)[p[0],p[p.length-1]].forEach(q=>h+=`<circle cx="${q[0]}" cy="${q[1]}" r="3" fill="#d6d9de" stroke="var(--ink)" stroke-width="1" opacity="${wo}"/>`)});
+ let z=zo(0)+.06;
+ h+=g(0,box(.6,.8,z,2,2,.45,mix('#d4d7dc','#f0a070',T.heat))+box(.9,1.1,z+.45,1.4,1.4,.03,'#8a9099')+(T.heat>.05?[-18,0,18].map((d,j)=>wave(P(1.6,1.8,z+.55)[0]+d,P(1.6,1.8,z+.55)[1],t,j)).join(''):''));
+ z=zo(1);
+ h+=g(1,box(3.6,.9,z,1.7,1.3,.12,pc)+box(4.0,1.2,z+.12,.6,.6,.35,'#3a3a3a')+box(4.8,1.3,z+.12,.35,.35,.08,'#222'));
+ z=zo(2);
+ h+=g(2,cyl(7.3,1.6,z,.6,1.5,pc,L));
+ z=zo(3);
+ h+=g(3,box(3.2,3.6,z,3,1,.12,pc)+box(3.8,3.62,z+.12,2,.12,.14,'#222')+box(3.8,4.46,z+.12,2,.12,.14,'#222')+box(4.4,3.9,z+.12,.55,.55,.07,'#222')+box(3.2,3.8,z+.12,.45,.4,.2,'#c8ccd2')+box(5.5,3.8,z+.12,.15,.15,.05,led?'#ffd23f':'#7a6a2a'));
+ z=zo(4);
+ h+=g(4,box(7.2,3.7,z,1.2,1.2,.12,pc)+box(7.55,4.05,z+.12,.5,.5,.12,glow?'#ff4d4d':'#222'));
+ h+=PS.sort((a,b)=>a[0]-b[0]).map(p=>p[1]).join('');
+ if(S.labels){
+  let ln='',pl='';
+  ANC.forEach((a,i)=>{const n=i<5?i:5,nm=i<5?NAMES[i]:'منفذ USB',oi=i<5?i:3;
+   const [x,y]=P(a[0],a[1],a[2]+zo(oi)),cx=x+a[3],cy=y+a[4],w=nm.length*6.4+16;
+   const op=T.pa[oi]*dim(oi);if(op<.05)return;
+   ln+=`<line x1="${x}" y1="${y}" x2="${cx}" y2="${cy}" stroke="var(--ink)" opacity="${op}"/><circle cx="${x}" cy="${y}" r="2.5" fill="var(--ink)" opacity="${op}"/>`;
+   pl+=`<g opacity="${op}"><rect x="${cx-w/2}" y="${cy-10}" width="${w}" height="20" rx="10" fill="var(--card)" stroke="var(--ink)"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="11" fill="var(--ink)" style="direction:ltr;font-weight:500">${nm}</text></g>`});
+  h+=ln+pl}
+ h+='</g></g>';svg.innerHTML=h;
+}
+const status=()=>{if(placed.some(v=>!v))return'ناقص';if(!S.wires)return'بدون أسلاك';if(!S.sol)return'غير ملحوم';
+ if(!S.skin)return T.L>.05?'يبرد':'جاهز · بارد';if(T.L<.98)return'يشحن '+Math.round(T.L*100)+'%';
+ return S.up?'يقيس ♥ '+(68+Math.round(5*Math.sin(performance.now()/1500))):'مشحون · بلا برنامج'};
+let last=0,tt=0;
+function loop(now){requestAnimationFrame(loop);if(now-last<33)return;const dt=Math.min(.1,(now-last)/1000);last=now;tt+=dt;
+ if(AUTO&&!pts2.size)ROT+=dt*.45;T.ex+=((S.exp?1:0)-T.ex)*.12;T.heat+=((S.skin?1:0)-T.heat)*.08;
+ for(let i=0;i<5;i++)T.pa[i]+=(placed[i]-T.pa[i])*.15;
+ const cond=placed.every(v=>v)&&S.wires&&S.sol;
+ T.L=Math.max(0,Math.min(1,T.L+(cond&&T.heat>.5?.07:-.04)*dt));
+ render(tt);ui(tt);$('parts').textContent=placed.reduce((a,b)=>a+b)+'/5';$('stat').textContent=status()}
+// UI
+const ch=$('chips');['كامل','المولّد الحراري','رافع الجهد','المكثف','الأردوينو','الحساس'].forEach((n,i)=>{const b=document.createElement('button');b.textContent=n;if(!i)b.className='on';
+ b.onclick=()=>{S.sel=i-1;[...ch.children].forEach(c=>c.classList.toggle('on',c===b));info()};ch.appendChild(b)});
+function info(){const d=INFO[S.sel+1];$('it').textContent=d[0];$('id').textContent=d[1]}
+const B=$('btns');
+function btn(txt,fn,tog){const b=document.createElement('button');b.textContent=txt;b.onclick=()=>{const r=fn();if(tog)b.classList.toggle('on',r)};B.appendChild(b);return b}
+btn('عرض مفكّك',()=>S.exp=!S.exp,1);
+btn('دفّئ على الجلد',()=>S.skin=!S.skin,1);
+const bw=btn('الأسلاك',()=>S.wires=!S.wires,1);bw.classList.add('on');
+const bs=btn('لحام',()=>S.sol=!S.sol,1);bs.classList.add('on');
+btn('ارفع الكود',()=>S.up=!S.up,1);
+btn('ضع قطعة',()=>{const i=placed.indexOf(0);if(i>=0)placed[i]=1});
+btn('جرّد اللوحة',()=>{placed.fill(0)});
+$('wob').oninput=e=>S.wob=+e.target.value;
+const sw=$('sws');['#3b6fd8','#e8b400','#d9473f','#2fa36b','#d9609a'].forEach((c,i)=>{const b=document.createElement('button');b.className='sw'+(i?'':' on');b.style.background=c;b.setAttribute('aria-label','لون');
+ b.onclick=()=>{S.pc=c;[...sw.children].forEach(x=>x.classList.toggle('on',x===b))};sw.appendChild(b)});
+$('lab').onclick=e=>{S.labels=!S.labels;e.target.classList.toggle('on',S.labels)};
+btn('دوّر تلقائياً',()=>AUTO=!AUTO,1);
+btn('إعادة الزاوية',()=>{ROT=0;ELV=.5;ZM=1;AUTO=false});
+const pts2=new Map();let pd=0;
+const pinch=()=>{if(pts2.size<2)return 0;const [a,b]=[...pts2.values()];return Math.hypot(a[0]-b[0],a[1]-b[1])};
+svg.style.touchAction='none';svg.style.cursor='grab';
+svg.onpointerdown=e=>{svg.setPointerCapture(e.pointerId);mv=0;pts2.set(e.pointerId,[e.clientX,e.clientY]);pd=pinch()};
+svg.onpointermove=e=>{if(!pts2.has(e.pointerId))return;const o=pts2.get(e.pointerId);pts2.set(e.pointerId,[e.clientX,e.clientY]);
+ if(pts2.size==1){mv+=Math.abs(e.clientX-o[0])+Math.abs(e.clientY-o[1]);ROT+=(e.clientX-o[0])*.012;ELV=Math.max(.3,Math.min(.7,ELV+(e.clientY-o[1])*.003))}
+ else if(pts2.size==2){const d=pinch();if(pd)ZM=Math.max(.6,Math.min(2.2,ZM*d/pd));pd=d}};
+svg.onpointerup=e=>{const tap=mv<6&&pts2.size==1;pts2.delete(e.pointerId);pd=pinch();if(tap)pick(e)};
+svg.onpointercancel=e=>{pts2.delete(e.pointerId);pd=pinch()};
+svg.onwheel=e=>{e.preventDefault();ZM=Math.max(.6,Math.min(2.2,ZM*(e.deltaY<0?1.08:.93)))};
+let mv=0,mode=0,tipH='';
+function setSel(i){S.sel=i;[...ch.children].forEach((c,j)=>c.classList.toggle('on',j===i+1));info()}
+function pick(e){const el=document.elementFromPoint(e.clientX,e.clientY),n=el&&el.closest('[data-i]');setSel(n?+n.dataset.i:-1)}
+const SHORT=['يحوّل فرق حرارة الجلد والجو إلى كهرباء.','يرفع الجهد الضعيف حتى يصلح للشحن.','يخزّن الطاقة ويعطيها للأردوينو.','عقل النظام: ينام ويصحى ليقرأ الحساس.','يقيس النبض والأكسجين والحرارة بالضوء.'];
+const MD=[[70,98,33.8,'القياسات طبيعية','#8dffd2'],[125,97,35.2,'مجهود بدني · النبض مرتفع','#ffd966'],[96,96,37.9,'حرارة مرتفعة · راجع الطبيب','#ff8a7a']];
+const MB=$('modes');['أنا بحالة راحة','أنا أركض','عندي حمّى'].forEach((n,i)=>{const b=document.createElement('button');b.textContent=n;if(!i)b.className='on';b.onclick=()=>{mode=i;[...MB.children].forEach(c=>c.classList.toggle('on',c===b))};MB.appendChild(b)});
+const SV={hr:70,so:98,tp:33.8},HS={v:[],hr:[],so:[],tp:[]},NN=40,FF=30;let PH=0,lt=0,ls=0;
+function chart(o){const W=o.w,H=o.h,pl=24,pr=6,pt=18,pb=6,iw=W-pl-pr,ih=H-pt-pb,n=NN+FF;
+ const X=i=>(pl+iw*i/(n-1)).toFixed(1),Y=v=>(pt+ih*(1-(Math.max(o.min,Math.min(o.max,v))-o.min)/(o.max-o.min))).toFixed(1);
+ const path=(a,off,dash)=>{let d='',st=0;a.forEach((v,i)=>{if(v==null){st=0;return}d+=(st?'L':'M')+X(i+off)+','+Y(v);st=1});return d?`<path d="${d}" fill="none" stroke="${o.color}" stroke-width="2" stroke-linejoin="round"${dash?' stroke-dasharray="4 3" opacity=".7"':''}/>`:''};
+ let s=`<svg viewBox="0 0 ${W} ${H}" style="direction:ltr">`;
+ if(o.band)s+=`<rect x="${pl}" y="${Y(o.band[1])}" width="${iw}" height="${(Y(o.band[0])-Y(o.band[1])).toFixed(1)}" fill="#2fb344" opacity=".16"/>`;
+ s+=`<rect x="${pl}" y="${pt}" width="${iw}" height="${ih}" fill="none" stroke="var(--line)"/><line x1="${X(NN-1)}" x2="${X(NN-1)}" y1="${pt}" y2="${pt+ih}" stroke="var(--mute)" stroke-dasharray="2 3"/>`;
+ if(o.th!=null)s+=`<line x1="${pl}" x2="${pl+iw}" y1="${Y(o.th)}" y2="${Y(o.th)}" stroke="#2fb344" stroke-dasharray="3 3"/><text x="${pl+4}" y="${Y(o.th)-3}" font-size="9" fill="#2a8a3a">${o.thl}</text>`;
+ s+=`<text x="${pl-3}" y="${pt+8}" font-size="8" text-anchor="end" fill="var(--mute)">${o.max}</text><text x="${pl-3}" y="${pt+ih}" font-size="8" text-anchor="end" fill="var(--mute)">${o.min}</text>`;
+ s+=`<text x="${W/2}" y="11" font-size="10" text-anchor="middle" font-weight="700" fill="var(--ink)">${o.name} ${o.val}</text>`;
+ s+=path(o.hist,NN-o.hist.length)+(o.proj?path(o.proj,NN-1,1):'');
+ return s+`<text x="${X(NN+FF*.55)}" y="${H-9}" font-size="8" text-anchor="middle" fill="var(--mute)">المتوقع</text></svg>`}
+function stepV(t){
+ const dt=Math.min(.2,Math.max(0,t-lt));lt=t;const d=MD[mode],k=1-Math.exp(-dt/2.5);
+ SV.hr+=(d[0]+2.5*Math.sin(t*.9)-SV.hr)*k;SV.so+=(d[1]+(Math.sin(t*.5)>.8?-.8:0)-SV.so)*k;SV.tp+=(d[2]+.08*Math.sin(t*.3)-SV.tp)*k;PH+=dt*SV.hr/60;
+ if(t-ls<.5)return;ls=t;
+ const cond=placed.every(v=>v)&&S.wires&&S.sol,run=cond&&S.skin&&T.L>.6&&S.up,r=(cond&&T.heat>.5)?.07:-.04,V=2.7*T.L,L=T.L;
+ const push=(a,v)=>{a.push(v);if(a.length>NN)a.shift()};
+ push(HS.v,V);push(HS.hr,run?SV.hr:null);push(HS.so,run?SV.so:null);push(HS.tp,run?SV.tp:null);
+ const pj=(cur,tg)=>run?Array.from({length:FF+1},(_,i)=>cur+(tg-cur)*(1-Math.exp(-i*.5/2.5))):null;
+ $('c1').innerHTML=chart({w:330,h:130,min:0,max:2.8,color:'#2f6fe0',name:'جهد المكثف (فولت)',val:V.toFixed(2),th:1.62,thl:'يصحى الأردوينو',hist:HS.v,proj:Array.from({length:FF+1},(_,i)=>2.7*Math.max(0,Math.min(1,L+r*i*.5)))});
+ $('c2').innerHTML=chart({w:110,h:96,min:40,max:160,color:'#e0475b',name:'نبض',val:run?Math.round(SV.hr):'—',band:[60,100],hist:HS.hr,proj:pj(SV.hr,d[0])});
+ $('c3').innerHTML=chart({w:110,h:96,min:90,max:100,color:'#2f6fe0',name:'أكسجين',val:run?Math.round(SV.so):'—',band:[95,100],hist:HS.so,proj:pj(SV.so,d[1])});
+ $('c4').innerHTML=chart({w:110,h:96,min:32,max:39,color:'#e08a1e',name:'حرارة',val:run?SV.tp.toFixed(1):'—',band:[33,36.5],hist:HS.tp,proj:pj(SV.tp,d[2])});
+ let f;
+ if(r>0)f=L>=.999?'المكثف ممتلئ · الطاقة كافية للقياس المستمر':L<.6?`الأردوينو يصحى بعد ≈ ${Math.ceil((.6-L)/r)} ث، ويمتلئ المكثف بعد ≈ ${Math.ceil((1-L)/r)} ث (زمن المحاكاة)`:`الأردوينو شغّال · يمتلئ المكثف بعد ≈ ${Math.ceil((1-L)/r)} ث`;
+ else f=L>.01?`الطاقة تنفد بعد ≈ ${Math.ceil(L/.04)} ث · الجهاز يحتاج دفء الجلد وأسلاك موصولة`:'لا توجد طاقة · دفّئ الجهاز على الجلد وتأكد من التوصيل';
+ $('fc').textContent=f;
+ $('fv').textContent=run?`${d[3]} · النبض متجه نحو ${d[0]} والحرارة نحو ${d[2]} °م`:'تظهر القراءات والتوقعات هنا بعد تشغيل الجهاز (دفّئ ثم ارفع الكود)';
+}
+function ui(t){stepV(t);
+ const cond=placed.every(v=>v)&&S.wires&&S.sol,hot=cond&&T.heat>.5,run=cond&&S.skin&&T.L>.6&&S.up;
+ let m='';
+ if(!placed.every(v=>v))m='القطع ناقصة · اضغط «ضع قطعة»';
+ else if(!S.wires||!S.sol)m='فعّل الأسلاك واللحام حتى تتصل الدائرة';
+ else if(!S.skin)m='ضع الجهاز على اليد: اضغط «دفّئ على الجلد»';
+ else if(T.L<=.6)m='يشحن الطاقة من حرارة الجسم… '+Math.round(T.L*100)+'%';
+ else if(!S.up)m='الطاقة جاهزة · اضغط «ارفع الكود» حتى يبدأ القياس';
+ $('sm').hidden=run;$('sm').textContent=m;$('sv').hidden=!run;
+ if(run){const d=MD[mode];
+  $('vh').textContent=Math.round(SV.hr);
+  $('vo').textContent=Math.round(SV.so);
+  $('vt').textContent=SV.tp.toFixed(1);
+  let s='';for(let i=0;i<60;i++){const p=((PH-i*.02)%1+1)%1,v=Math.exp(-((p-.15)**2)/.004)+.45*Math.exp(-((p-.42)**2)/.012);s+=(i*5)+','+(44-v*34).toFixed(1)+' '}
+  $('pp').setAttribute('points',s);
+  $('vs').textContent=d[3]+' · الطاقة '+Math.round(T.L*100)+'%';$('vs').style.color=d[4]}
+ const tp=$('tip');
+ if(S.sel<0){tp.hidden=true}else{const i=S.sel,LV=[hot?'يولّد ≈ 0.8 فولت · 13 mW':'بارد · لا يولّد',hot?'يعمل ويرفع الجهد':'متوقف',`الشحن ${Math.round(T.L*100)}% · ${(2.7*T.L).toFixed(2)} فولت`,S.up?(T.L>.6?'يصحى ويقيس':'ينتظر الطاقة'):'لا برنامج مرفوع',run?'يقيس الآن':'بدون طاقة'];
+  const h=`<b>${NAMES[i]}</b> <span class="lv">${LV[i]}</span><em>${SHORT[i]}</em>`;tp.hidden=false;if(h!==tipH){tipH=h;tp.innerHTML=h}}
+}
+info();requestAnimationFrame(loop);
 </script>
 </body>
 </html>
